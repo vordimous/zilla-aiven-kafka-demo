@@ -44,27 +44,65 @@ bindings:
     options:
       location: /var/www/
 
-# SSE Server
+# SSE Proxy Server
   sse_server:
     type: sse
     kind: server
+    exit: sse_kafka_proxy
+  sse_kafka_proxy:
+    type: sse-kafka
+    kind: proxy
     routes:
-      - exit: sse_client
-  sse_client:
-    type: sse
+      - when:
+          - path: /events
+        exit: kafka_cache_client
+        with:
+          topic: raw-messages
+  kafka_cache_client:
+    type: kafka
+    kind: cache_client
+    exit: kafka_cache_server
+  kafka_cache_server:
+    type: kafka
+    kind: cache_server
+    exit: aiven_kafka_client
+
+# Aiven Kafka config
+  aiven_kafka_client:
+    type: kafka
     kind: client
-    exit: http_client
-  http_client:
-    type: http
+    exit: aiven_tls_client
+  aiven_tls_client:
+    type: tls
     kind: client
+    vault: aiven_cert_vault
     options:
-      versions:
-        - http/1.1
-    exit: tcp_client
-  tcp_client:
+      trust:
+        - ${{env.TRUST_CERT_ALIAS}}
+      keys:
+        - ${{env.KEY_CERT_ALIAS}}
+      sni:
+        - ${{env.AIVEN_SERVER_HOSTNAME}}
+    exit: aiven_tcp_client
+  aiven_tcp_client:
     type: tcp
     kind: client
     options:
-      host: sse-server
-      port: 8001
+      host: ${{env.AIVEN_SERVER_HOSTNAME}}
+      port: ${{env.AIVEN_SERVER_PORT}}
+    routes:
+      - when:
+          - cidr: 0.0.0.0/0
 
+vaults:
+  aiven_cert_vault:
+    type: filesystem
+    options:
+      trust:
+        store: certs/truststore.p12
+        type: pkcs12
+        password: ${{env.TRUSTORE_PASSWORD}}
+      keys:
+        store: certs/keystore.p12
+        type: pkcs12
+        password: ${{env.KEYSTORE_PASSWORD}}

@@ -3,31 +3,21 @@ services:
   zilla:
     image: ghcr.io/aklivity/zilla:latest
     container_name: zilla
+    environment:
+      AIVEN_SERVER_HOSTNAME: zilla-kafka-devrel-ben.aivencloud.com
+      AIVEN_SERVER_PORT: 15545
+      TRUSTORE_PASSWORD: AivenZilla
+      KEYSTORE_PASSWORD: AivenZilla
+      TRUST_CERT_ALIAS: Aiven_Client_Cert
+      KEY_CERT_ALIAS: Aiven_CA_Cert
+      JAVA_OPTS: "-Djavax.net.debug=all"
     ports:
       - "8080:8080"
     volumes:
       - ./zilla.yaml:/etc/zilla/zilla.yaml
+      - ./certs/:/etc/zilla/certs
       - ./index.html:/var/www/index.html
     command: start -v -e
-
-  sse-server:
-    image: zilla-examples/sse-server:latest
-    container_name: sse-server
-    tty: true
-    ports:
-      - "8001:8001"
-      - "7001:7001"
-    command: -v -p 8001 -i 7001
-
-  messenger:
-    image: busybox:latest
-    container_name: sse_messenger
-    depends_on:
-      - sse-server
-    command: 
-      - "/bin/sh"
-      - "-c"
-      - 'while true; do echo "{ \"data\": \"Hello, world $(date)\" }" | nc sse-server 7001; echo "message sent, waiting 5 sec"; sleep 5; done'
 
 networks:
   default:

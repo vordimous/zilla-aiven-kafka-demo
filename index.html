@@ -24,30 +24,39 @@
         <input id="location" value="http://localhost:8080/events" style="width: 200px" />
       </div>
       <div class="row">
-        <button onclick="javascript:attachEventSource()">Go</button>
+        <button onclick="javascript:attachEventSource()">Connect</button>
+        <button onclick="javascript:closeEventSource()">Disconnect</button>
       </div>
 
       <h3>Messages</h3>
       <div id="messages"></div>
     </div>
     <script>
-        async function attachEventSource() {
-          const location = document.getElementById("location");
-          const messages = document.getElementById("messages");
-  
-          const es = new EventSource(`${location.value}`);
-          const handleEvent = (event) => {
-              var text = document.createTextNode(`${event.type}: ${event.data ? event.data : ""}`);
-              var line = document.createElement("p");
-              line.appendChild(text);
-    
-              messages.insertBefore(line, messages.firstChild);
-            };
-          es.onmessage = handleEvent;
-          es.onopen = handleEvent;
-          es.onerror = handleEvent;
+      let es;
+
+      async function attachEventSource() {
+        const location = document.getElementById("location");
+        const messages = document.getElementById("messages");
+        es = new EventSource(`${location.value}`);
+        const handleEvent = (event) => {
+          var text = document.createTextNode(`${event.type}: ${event.data ? event.data : ""}`);
+          var line = document.createElement("p");
+          line.appendChild(text);
+
+          messages.insertBefore(line, messages.firstChild);
+        };
+        es.onmessage = handleEvent;
+        es.onopen = handleEvent;
+        es.onerror = handleEvent;
+      }
+      async function closeEventSource() {
+        if (es) {
+          es.close();
+          es = null;
         }
-      </script>
+      }
+
+      attachEventSource()
+    </script>
   </body>
 </html>
-
