@@ -1,0 +1,70 @@
+name: SSE-example
+bindings:
+
+# Gateway ingress config
+  tcp_server:
+    type: tcp
+    kind: server
+    options:
+      host: 0.0.0.0
+      port: 8080
+    exit: http_server
+  http_server:
+    type: http
+    kind: server
+    options:
+      access-control:
+        policy: cross-origin
+    routes:
+      - when:
+          - headers:
+              :scheme: http
+              :authority: localhost:8080
+              :path: /events
+        exit: sse_server
+      - when:
+          - headers:
+              :scheme: http
+              :authority: localhost:8080
+        exit: http_filesystem_proxy
+
+# UI html file server
+  http_filesystem_proxy:
+    type: http-filesystem
+    kind: proxy
+    routes:
+      - when:
+          - path: /{path}
+        with:
+          path: ${params.path}
+        exit: filesystem_server
+  filesystem_server:
+    type: filesystem
+    kind: server
+    options:
+      location: /var/www/
+
+# SSE Server
+  sse_server:
+    type: sse
+    kind: server
+    routes:
+      - exit: sse_client
+  sse_client:
+    type: sse
+    kind: client
+    exit: http_client
+  http_client:
+    type: http
+    kind: client
+    options:
+      versions:
+        - http/1.1
+    exit: tcp_client
+  tcp_client:
+    type: tcp
+    kind: client
+    options:
+      host: sse-server
+      port: 8001
+
