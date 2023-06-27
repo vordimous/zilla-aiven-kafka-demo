@@ -57,7 +57,7 @@ bindings:
           - path: /events
         exit: kafka_cache_client
         with:
-          topic: raw-messages
+          topic: just_posts
   kafka_cache_client:
     type: kafka
     kind: cache_client
