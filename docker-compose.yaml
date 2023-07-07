@@ -1,7 +1,7 @@
 version: '3'
 services:
   zilla:
-    image: ghcr.io/aklivity/zilla:0.9.48
+    image: ghcr.io/aklivity/zilla:latest
     container_name: zilla
     environment:
       AIVEN_SERVER_HOSTNAME: zilla-kafka-devrel-ben.aivencloud.com
