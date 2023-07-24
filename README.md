@@ -19,3 +19,10 @@ keytool -import -file ca.pem \
     -keystore truststore.p12
 
 AivenZilla
+
+* alerts and kibana
+* Zilla is for real time user value
+  * two panels, full stream and a list of the hashes
+  * select the hashes to change the stream data
+  * zilla publishes the search object onto a topic
+  * 
